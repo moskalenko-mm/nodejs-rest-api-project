@@ -80,6 +80,9 @@ router.delete("/:contactId", async (req, res, next) => {
 
 router.put("/:contactId", async (req, res, next) => {
   try {
+    if (!req.body) {
+      throw HttpError(400);
+    }
     const { error } = contactAddSchema.validate(req.body);
     if (error) {
       throw HttpError(400, error.message);
