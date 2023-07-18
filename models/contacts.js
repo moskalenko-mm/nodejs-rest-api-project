@@ -1,6 +1,6 @@
-const fs = require("fs/promises");
-const path = require("path");
-const { nanoid } = require("nanoid");
+import fs from "fs/promises";
+import path from "path";
+import { nanoid } from "nanoid";
 
 const filePath = path.resolve("models", "contacts.json");
 
@@ -55,7 +55,7 @@ const updateContact = async (contactId, body) => {
   return contacts[index];
 };
 
-module.exports = {
+export default {
   listContacts,
   getContactById,
   removeContact,
