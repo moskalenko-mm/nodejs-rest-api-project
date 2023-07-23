@@ -1,38 +1,40 @@
 import { HttpError } from "../helpers/index.js";
 import { ctrlWrapper } from "../decorators/index.js";
-import contactsService from "../models/contacts.js";
+import Movie from "../models/contact.js";
 
-const getAll = async (req, res, next) => {
-  const result = await contactsService.listContacts();
+const getAll = async (req, res) => {
+  const result = await Movie.find();
   res.json(result);
 };
 
-const getByID = async (req, res, next) => {
+const getByID = async (req, res) => {
   const { contactId } = req.params;
-  const result = await contactsService.getContactById(contactId);
+  const result = await Movie.findById(contactId);
   if (!result) {
     throw HttpError(404);
   }
   res.json(result);
 };
 
-const add = async (req, res, next) => {
-  const result = await contactsService.addContact(req.body);
+const add = async (req, res) => {
+  const result = await Movie.create(req.body);
   res.status(201).json(result);
 };
 
-const updateById = async (req, res, next) => {
+const updateById = async (req, res) => {
   const { contactId } = req.params;
-  const result = await contactsService.updateContact(contactId, req.body);
+  const result = await Movie.findByIdAndUpdate(contactId, req.body, {
+    new: true,
+  });
   if (!result) {
     throw HttpError(404);
   }
   res.json(result);
 };
 
-const deleteById = async (req, res, next) => {
+const deleteById = async (req, res) => {
   const { contactId } = req.params;
-  const result = await contactsService.removeContact(contactId);
+  const result = await Movie.findByIdAndRemove(contactId);
   if (!result) {
     throw HttpError(404);
   }
@@ -41,10 +43,22 @@ const deleteById = async (req, res, next) => {
   });
 };
 
+const updateStatusContact = async (req, res) => {
+  const { contactId } = req.params;
+  const result = await Movie.findByIdAndUpdate(contactId, req.body, {
+    new: true,
+  });
+  if (!result) {
+    throw HttpError(404);
+  }
+  res.json(result);
+};
+
 export default {
   getAll: ctrlWrapper(getAll),
   getByID: ctrlWrapper(getByID),
   add: ctrlWrapper(add),
   updateById: ctrlWrapper(updateById),
+  updateStatusContact: ctrlWrapper(updateStatusContact),
   deleteById: ctrlWrapper(deleteById),
 };
