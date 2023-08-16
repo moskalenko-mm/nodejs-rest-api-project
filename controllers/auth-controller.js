@@ -1,12 +1,16 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
+import fs from "fs/promises";
+import path from "path";
+import gravatar from "gravatar";
 
-import { HttpError } from "../helpers/index.js";
+import { HttpError, resizeAvatar } from "../helpers/index.js";
 import { ctrlWrapper } from "../decorators/index.js";
 import User from "../models/user.js";
 
 const { JWT_SECRET } = process.env;
+const avatarPath = path.resolve("public", "avatars");
 
 const singup = async (req, res) => {
   const { email, password } = req.body;
@@ -18,12 +22,19 @@ const singup = async (req, res) => {
 
   const hashPassword = await bcrypt.hash(password, 10);
 
-  const newUser = await User.create({ ...req.body, password: hashPassword });
+  const avatarURL = gravatar.url(email, { s: 250 });
+
+  const newUser = await User.create({
+    ...req.body,
+    password: hashPassword,
+    avatarURL,
+  });
 
   res.status(201).json({
     user: {
       email: newUser.email,
       subscription: newUser.subscription,
+      avatarURL: newUser.avatarURL,
     },
   });
 };
@@ -79,10 +90,32 @@ const updateUserSubscription = async (req, res) => {
   res.json(result);
 };
 
+const updateAvatar = async (req, res) => {
+  const { path: oldPath, filename } = req.file;
+  const { _id } = req.user;
+  await resizeAvatar(oldPath);
+  const uniqFilename = `${_id}-${filename}`;
+  const newPath = path.join(avatarPath, uniqFilename);
+  await fs.rename(oldPath, newPath);
+  const avatarURL = path.join("avatars", uniqFilename);
+
+  await User.findByIdAndUpdate(
+    _id,
+    { avatarURL },
+    {
+      new: true,
+      select: "avatarURL",
+    }
+  );
+
+  res.json({ avatarURL });
+};
+
 export default {
   singup: ctrlWrapper(singup),
   singin: ctrlWrapper(singin),
   logout: ctrlWrapper(logout),
   getCurrent: ctrlWrapper(getCurrent),
   updateUserSubscription: ctrlWrapper(updateUserSubscription),
+  updateAvatar: ctrlWrapper(updateAvatar),
 };
