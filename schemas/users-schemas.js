@@ -17,7 +17,14 @@ const userSinginSchema = Joi.object({
   }),
 });
 
+const userEmailSchema = Joi.object({
+  email: Joi.string().required().email().messages({
+    "any.required": `missing required email field`,
+  }),
+});
+
 export default {
   userSingupSchema,
   userSinginSchema,
+  userEmailSchema,
 };
